@@ -5,7 +5,7 @@ Dump a PouchDB or CouchDB database to a file. Then you can load it into another 
 
 When you do so, it will be as if you had replicated from one database to the other, but without all the standard HTTP chattiness of the CouchDB protocol.
 
-In other words, this is a very fast way to do initial replication. And it's even safe to do multiple times, since the "load" operation is idempotent.
+In other words, this is a very fast way to do initial replication. And it's also safe to do multiple times, since the "load" operation is idempotent.
 
 Usage
 --------
