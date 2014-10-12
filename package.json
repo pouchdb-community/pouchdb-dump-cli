@@ -10,6 +10,9 @@
     "type": "git",
     "url": "https://github.com/nolanlawson/pouchdb-dump-cli.git"
   },
+  "bin": {
+    "pouchdb-dump": "./index.js"
+  },
   "keywords": [
     "pouchdb",
     "couchdb",
@@ -23,6 +26,7 @@
   },
   "homepage": "https://github.com/nolanlawson/pouchdb-dump-cli",
   "dependencies": {
+    "lie": "^2.8.0",
     "pouchdb": "^3.0.6",
     "pouchdb-replication-stream": "^0.1.0",
     "yargs": "^1.3.2"
