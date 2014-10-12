@@ -1,0 +1,30 @@
+{
+  "name": "pouchdb-dump-cli",
+  "version": "1.0.0",
+  "description": "Tool to dump a PouchDB/CouchDB database",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nolanlawson/pouchdb-dump-cli.git"
+  },
+  "keywords": [
+    "pouchdb",
+    "couchdb",
+    "dump",
+    "cli"
+  ],
+  "author": "Nolan Lawson <nolan.lawson@gmail.com>",
+  "license": "Apache 2",
+  "bugs": {
+    "url": "https://github.com/nolanlawson/pouchdb-dump-cli/issues"
+  },
+  "homepage": "https://github.com/nolanlawson/pouchdb-dump-cli",
+  "dependencies": {
+    "pouchdb": "^3.0.6",
+    "pouchdb-replication-stream": "^0.1.0",
+    "yargs": "^1.3.2"
+  }
+}
