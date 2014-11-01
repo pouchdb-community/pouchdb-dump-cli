@@ -12,12 +12,16 @@ var yargs = require('yargs')
   .describe('u', 'username for the CouchDB database (if it\'s protected)')
   .alias('p', 'password')
   .describe('p', 'password for the CouchDB database (if it\'s protected)')
+  .alias('s', 'split')
+  .describe('s', 'split into multiple files, for every n docs')
   .example('$0 http://localhost:5984/mydb > dump.txt',
     'Dump from the "mydb" CouchDB to dump.txt')
   .example('$0 /path/to/mydb > dump.txt',
     'Dump from the "mydb" LevelDB-based PouchDB to dump.txt')
   .example('$0 /path/to/mydb -o dump.txt',
     'Dump to the specified file instead of stdout')
+  .example('$0 /path/to/mydb -o dump.txt -s 100',
+    'Dump every 100 documents to dump_00.txt, dump_01.txt, dump_02.txt, etc.')
   .example('$0 http://example.com/mydb -u myUsername -p myPassword > dump.txt',
     'Specify a CouchDB username and password if it\'s protected');
 
@@ -37,6 +41,8 @@ if (!dbName) {
 var Promise = require('lie');
 var PouchDB = require('pouchdb');
 var replicationStream = require('pouchdb-replication-stream');
+var through = require('through2').obj;
+var fs = require('fs');
 
 PouchDB.plugin(replicationStream.plugin);
 Object.keys(replicationStream.adapters).forEach(function (adapterName) {
@@ -45,6 +51,7 @@ Object.keys(replicationStream.adapters).forEach(function (adapterName) {
 });
 
 var outfile = argv.o;
+var split = argv.s;
 var password = argv.p;
 var username = argv.u;
 
@@ -62,6 +69,10 @@ if ((!!password) !== (!!username)) {
   dbName = parsedURL.protocol + '//' + encodeURIComponent(username) +
     ':' + encodeURIComponent(password) + '@' + parsedURL.host +
     parsedURL.path;
+}
+if (split && !outfile) {
+  console.error('If you supply a split, you must also supply an outfile');
+  return process.exit(1);
 }
 
 // check that it exists
@@ -89,8 +100,73 @@ return new Promise(function (resolve, reject) {
 }).then(function () {
   return new PouchDB(dbName);
 }).then(function (db) {
-  var outstream = outfile ? require('fs').createWriteStream(outfile) : process.stdout;
-  return db.dump(outstream, {batch_size: 1});
+  var dumpOpts = {batch_size: 1};
+  if (!split) {
+    var outstream = outfile ? fs.createWriteStream(outfile) : process.stdout;
+    return db.dump(outstream, dumpOpts);
+  }
+
+  var numFiles = 0;
+  var numDocs = 0;
+  var out = [];
+  var header;
+  var first = true;
+
+  var splitPromises = [];
+
+  function createSplitFileName() {
+    var numStr = numFiles.toString();
+    while (numStr.length < 8) {
+      numStr = '0' + numStr;
+    }
+    // if the filename is e.g. foo.txt, return
+    // foo_00000000.txt
+    // else just foo_00000000
+    var match = outfile.match(/\.[^\.]+$/);
+    if (match) {
+      return outfile.replace(/\.[^\.]+$/, '_' + numStr + match[0]);
+    } else {
+      return outfile + '_' + numStr;
+    }
+  }
+  function dumpToSplitFile() {
+    var outstream = fs.createWriteStream(createSplitFileName());
+    outstream.write(header);
+    out.forEach(function (chunk) {
+      outstream.write(chunk);
+    });
+    outstream.end();
+    splitPromises.push(new Promise(function (resolve) {
+      outstream.on('finish', resolve);
+    }));
+    out = [];
+    numFiles++;
+  }
+
+  var splitStream = through(function (chunk, _, next) {
+    if (first) {
+      header = chunk;
+    }
+    var line = JSON.parse(chunk);
+
+    if (line.docs) {
+      numDocs++;
+      if (numDocs > 1 && numDocs % split === 1) {
+        dumpToSplitFile();
+      }
+    }
+    if (!first) {
+      out.push(chunk);
+    }
+    first = false;
+    next();
+  });
+  return db.dump(splitStream, dumpOpts).then(function () {
+    if (out.length) {
+      dumpToSplitFile()
+    }
+    return Promise.all(splitPromises);
+  });
 }).then(function () {
   process.exit(0);
 }).catch(function (err) {
