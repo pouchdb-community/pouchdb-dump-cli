@@ -1,6 +1,6 @@
 {
   "name": "pouchdb-dump-cli",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Tool to dump a PouchDB/CouchDB database",
   "main": "index.js",
   "scripts": {
