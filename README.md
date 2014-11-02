@@ -1,4 +1,4 @@
-pouchdb-dump-cli
+PouchDB Dump CLI
 =======
 
 Dump a PouchDB or CouchDB database to a file, or to multiple files. Then you can load it into another PouchDB or CouchDB database.
