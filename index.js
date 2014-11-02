@@ -43,6 +43,7 @@ var PouchDB = require('pouchdb');
 var replicationStream = require('pouchdb-replication-stream');
 var through = require('through2').obj;
 var fs = require('fs');
+var ProgressBar = require('progress');
 
 PouchDB.plugin(replicationStream.plugin);
 Object.keys(replicationStream.adapters).forEach(function (adapterName) {
@@ -106,13 +107,22 @@ return new Promise(function (resolve, reject) {
     return db.dump(outstream, dumpOpts);
   }
 
+  // estimate a good batch size. it doesn't affect the integrity of the output,
+  // but it gives us a nice granularity on the progress bar, and also corrects
+  // for cases where there are leaf conflicts and thus the output might not contain
+  // exactly the "split" size
+  dumpOpts.batch_size = Math.max(1, Math.floor(split / 10));
+
   var numFiles = 0;
-  var numDocs = 0;
+  var numDocsInBatch = 0;
   var out = [];
   var header;
   var first = true;
 
   var splitPromises = [];
+  var totalSeq;
+
+  var bar;
 
   function createSplitFileName() {
     var numStr = numFiles.toString();
@@ -140,18 +150,29 @@ return new Promise(function (resolve, reject) {
       outstream.on('finish', resolve);
     }));
     out = [];
+    numDocsInBatch = 0;
     numFiles++;
   }
 
   var splitStream = through(function (chunk, _, next) {
+    var line = JSON.parse(chunk);
     if (first) {
       header = chunk;
+      console.log();
+      totalSeq = line.db_info.update_seq;
+      bar = new ProgressBar('Dumping [:bar] :percent :etam', {
+        total: totalSeq,
+        complete: '=',
+        incomplete: ' ',
+        width: 40
+      });
+    } else if (line.seq) {
+      bar.update(line.seq / totalSeq);
     }
-    var line = JSON.parse(chunk);
 
     if (line.docs) {
-      numDocs++;
-      if (numDocs > 1 && numDocs % split === 1) {
+      numDocsInBatch += line.docs.length;
+      if (numDocsInBatch >= split) {
         dumpToSplitFile();
       }
     }
@@ -163,9 +184,11 @@ return new Promise(function (resolve, reject) {
   });
   return db.dump(splitStream, dumpOpts).then(function () {
     if (out.length) {
-      dumpToSplitFile()
+      dumpToSplitFile();
     }
-    return Promise.all(splitPromises);
+    return Promise.all(splitPromises).then(function () {
+      console.log(); // clear the progress bar
+    });
   });
 }).then(function () {
   process.exit(0);
