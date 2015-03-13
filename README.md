@@ -51,3 +51,11 @@ Options:
   -s, --split        split into multiple files, for every n docs 
 ```
 
+Changelog
+-----
+
+### 2.0.0
+
+2.0.0 is a breaking change that increases the default batch size for non-split dumps from 1 to 100. This makes the out-of-the-box performance of this tool much beter. You can still get one-doc-per-line if you set the `--split` to 1.
+
+I doubt anybody actually wants that, but I'm still incrementing the major version.
