@@ -101,7 +101,7 @@ return new Promise(function (resolve, reject) {
 }).then(function () {
   return new PouchDB(dbName);
 }).then(function (db) {
-  var dumpOpts = {batch_size: 1};
+  var dumpOpts = {};
   if (!split) {
     var outstream = outfile ? fs.createWriteStream(outfile) : process.stdout;
     return db.dump(outstream, dumpOpts);
@@ -111,8 +111,12 @@ return new Promise(function (resolve, reject) {
   // but it gives us a nice granularity on the progress bar, and also corrects
   // for cases where there are leaf conflicts and thus the output might not contain
   // exactly the "split" size
-  dumpOpts.batch_size = Math.max(1, Math.floor(split / 10));
-
+  if (split) {
+    dumpOpts.batch_size = Math.max(1, Math.floor(split / 10));
+  } else {
+    dumpOpts.batch_size = 100; // decent default for good performance
+  }
+  
   var numFiles = 0;
   var numDocsInBatch = 0;
   var out = [];
