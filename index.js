@@ -12,6 +12,8 @@ var yargs = require('yargs')
   .describe('u', 'username for the CouchDB database (if it\'s protected)')
   .alias('p', 'password')
   .describe('p', 'password for the CouchDB database (if it\'s protected)')
+  .alias('c', 'cookie')
+  .describe('c', 'cookie for the CouchDB database (if it\'s protected)')
   .alias('s', 'split')
   .describe('s', 'split into multiple files, for every n docs')
   .example('$0 http://localhost:5984/mydb > dump.txt',
@@ -55,6 +57,16 @@ var outfile = argv.o;
 var split = argv.s;
 var password = argv.p;
 var username = argv.u;
+var cookie = argv.c;
+
+var dbOpts = {};
+if(cookie) {
+  dbOpts.ajax = {
+    headers: {
+      Cookie: cookie
+    }
+  }
+}
 
 if ((!!password) !== (!!username)) {
   console.error('You must either supply both a username and password, or neither');
@@ -83,6 +95,8 @@ return new Promise(function (resolve, reject) {
     protocol.get(dbName, function (res) {
       if (res.statusCode && res.statusCode / 100 === 2) {
         resolve();
+      } else if (res.statusCode && res.statusCode === 401 && cookie) {
+        resolve(); // cookie auth not possible here
       } else {
         res.pipe(process.stderr);
         reject(new Error(dbName + ': ' + res.statusCode));
@@ -99,7 +113,7 @@ return new Promise(function (resolve, reject) {
     });
   }
 }).then(function () {
-  return new PouchDB(dbName);
+  return new PouchDB(dbName, dbOpts);
 }).then(function (db) {
   var dumpOpts = {};
   if (!split) {

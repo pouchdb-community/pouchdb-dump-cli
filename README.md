@@ -41,6 +41,7 @@ Examples:
   pouchdb-dump /path/to/mydb -o dump.txt                                         Dump to the specified file instead of stdout
   pouchdb-dump /path/to/mydb -o dump.txt -s 100                                  Dump every 100 documents to dump_00.txt, dump_01.txt, dump_02.txt, etc.
   pouchdb-dump http://example.com/mydb -u myUsername -p myPassword > dump.txt    Specify a CouchDB username and password if it's protected
+  pouchdb-dump http://example.com/mydb -c AuthSession=aHVnbzo1NTFC > dump.txt    Specify a CouchDB cookie if it's protected
 
 
 Options:
@@ -48,6 +49,7 @@ Options:
   -o, --output-file  output file (else will dump to stdout)               
   -u, --username     username for the CouchDB database (if it's protected)
   -p, --password     password for the CouchDB database (if it's protected)
+  -c, --cookie       cookie for the CouchDB database (if it's protected)
   -s, --split        split into multiple files, for every n docs 
 ```
 
