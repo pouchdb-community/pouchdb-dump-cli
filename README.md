@@ -9,7 +9,7 @@ In other words, this is a very fast way to do initial replication. And it's also
 
 To load the dump file, use [pouchdb-load](https://github.com/nolanlawson/pouchdb-load).
 
-To dump from within your Node.js app instead of as a CLI, use [pouchdb-replication-stream](https://github.com/nolanlawson/pouchdb-replication-stream).
+To dump from within your JavaScript code (either in Node.js or in the browser), just use [pouchdb-replication-stream](https://github.com/nolanlawson/pouchdb-replication-stream) directly.
 
 Usage
 --------
