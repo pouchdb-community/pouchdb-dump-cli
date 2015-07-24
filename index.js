@@ -106,6 +106,8 @@ return new Promise(function (resolve, reject) {
 }).then(function (db) {
   var dumpOpts = {};
   if (!split) {
+    // need to set encoding for process.stdout explicitly
+    // otherwise for instance German umlaute are mangled
     process.stdout.setEncoding('utf16le')
     var outstream = outfile ? fs.createWriteStream(outfile) : process.stdout;
     return db.dump(outstream, dumpOpts);
