@@ -106,6 +106,7 @@ return new Promise(function (resolve, reject) {
 }).then(function (db) {
   var dumpOpts = {};
   if (!split) {
+    process.stdout.setEncoding('utf16le')
     var outstream = outfile ? fs.createWriteStream(outfile) : process.stdout;
     return db.dump(outstream, dumpOpts);
   }
