@@ -56,7 +56,7 @@ var split = argv.s;
 var password = argv.p;
 var username = argv.u;
 
-if ((!!password) !== (!!username)) {
+if ((password && !username) || (!password && username)) {
   console.error('You must either supply both a username and password, or neither');
   return process.exit(1);
 } else if (password) {
@@ -106,10 +106,17 @@ return new Promise(function (resolve, reject) {
 }).then(function (db) {
   var dumpOpts = {};
   if (!split) {
-    // need to set encoding for process.stdout explicitly
-    // otherwise for instance German umlaute are mangled
-    process.stdout.setEncoding('utf16le')
-    var outstream = outfile ? fs.createWriteStream(outfile) : process.stdout;
+    var outstream;
+    if (outfile) {
+      outstream = fs.createWriteStream(outfile, {
+        encoding: 'utf8'
+      });
+    } else {
+      // need to set encoding for process.stdout explicitly
+      // otherwise for instance German umlaute are mangled
+      process.stdout.setEncoding('utf8');
+      outstream = process.stdout;
+    }
     return db.dump(outstream, dumpOpts);
   }
 
@@ -150,7 +157,9 @@ return new Promise(function (resolve, reject) {
     }
   }
   function dumpToSplitFile() {
-    var outstream = fs.createWriteStream(createSplitFileName());
+    var outstream = fs.createWriteStream(createSplitFileName(), {
+      encoding: 'utf8'
+    });
     outstream.write(header);
     out.forEach(function (chunk) {
       outstream.write(chunk);
@@ -205,5 +214,6 @@ return new Promise(function (resolve, reject) {
 }).catch(function (err) {
   console.error('unexpected error');
   console.error(err);
+  console.error(err.stack);
   process.exit(1);
 });
