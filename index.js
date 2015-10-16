@@ -114,7 +114,10 @@ return new Promise(function (resolve, reject) {
     } else {
       // need to set encoding for process.stdout explicitly
       // otherwise for instance German umlaute are mangled
-      process.stdout.setEncoding('utf8');
+      if (typeof process.stdout.setEncoding === 'function') {
+        // only works in older versions of Node apparently?
+        process.stdout.setEncoding('utf8');
+      }
       outstream = process.stdout;
     }
     return db.dump(outstream, dumpOpts);

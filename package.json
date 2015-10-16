@@ -26,8 +26,8 @@
   },
   "homepage": "https://github.com/nolanlawson/pouchdb-dump-cli",
   "dependencies": {
-    "lie": "^2.8.0",
-    "pouchdb": "^3.0.6",
+    "lie": "^3.0.1",
+    "pouchdb": "^5.0.0",
     "pouchdb-replication-stream": "^1.0.0",
     "progress": "^1.1.8",
     "through2": "^0.6.3",
