@@ -140,7 +140,6 @@ return new Promise(function (resolve, reject) {
   var first = true;
 
   var splitPromises = [];
-  var totalSeq;
 
   var bar;
 
@@ -181,15 +180,15 @@ return new Promise(function (resolve, reject) {
     if (first) {
       header = chunk;
       console.log();
-      totalSeq = line.db_info.update_seq;
-      bar = new ProgressBar('Dumping [:bar] :percent :etam', {
-        total: totalSeq,
+      var totalDocs = line.db_info.doc_count + line.db_info.doc_del_count;
+      bar = new ProgressBar('Dumping :total docs, [:bar] :percent :etam', {
+        total: totalDocs,
         complete: '=',
         incomplete: ' ',
         width: 40
       });
     } else if (line.seq) {
-      bar.update(line.seq / totalSeq);
+      bar.tick(1);
     }
 
     if (line.docs) {
