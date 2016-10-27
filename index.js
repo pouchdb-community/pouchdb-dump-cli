@@ -39,7 +39,10 @@ if (!dbName) {
 }
 
 var Promise = require('lie');
-var PouchDB = require('pouchdb');
+var PouchDB = require('pouchdb-core')
+  .plugin(require('pouchdb-adapter-leveldb'))
+  .plugin(require('pouchdb-adapter-http'))
+  .plugin(require('pouchdb-replication'));
 var replicationStream = require('pouchdb-replication-stream');
 var through = require('through2').obj;
 var fs = require('fs');
